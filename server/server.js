@@ -75,7 +75,10 @@ const server = http.createServer((req, res) => {
 // ---------- Multiplayer ----------
 const wss = new WebSocketServer({ server });
 const round = new Round(onRoundEnd);
-const sockets = new Map();   // id -> ws
+const sockets = new Map();        // id -> ws
+const reconnectTokens = new Map(); // token -> current player id
+const pendingRemoval = new Map();  // id -> removal timeout (player is in disconnect grace)
+const GRACE_MS = 15000;            // resume window after a dropped connection
 
 function broadcast(obj) {
   const data = JSON.stringify(obj);
@@ -98,14 +101,35 @@ wss.on('connection', (ws) => {
     let msg; try { msg = JSON.parse(raw); } catch { return; }
     if (!msg || typeof msg.t !== 'string') return;
     switch (msg.t) {
-      case MSG.HELLO:
-        round.addPlayer(id, msg.name, msg.wallet);
+      case MSG.HELLO: {
+        let token = typeof msg.reconnect === 'string' ? msg.reconnect : null;
+        let resumed = false;
+        // Resume a session dropped within the grace window (same exact state).
+        if (token && reconnectTokens.has(token)) {
+          const oldId = reconnectTokens.get(token);
+          const player = round.players.get(oldId);
+          const timer = pendingRemoval.get(oldId);
+          if (player && timer) {
+            clearTimeout(timer); pendingRemoval.delete(oldId);
+            round.players.delete(oldId);
+            player.id = id; player.disconnected = false;
+            round.players.set(id, player);
+            reconnectTokens.set(token, id);
+            resumed = true;
+          }
+        }
+        if (!resumed) {
+          round.addPlayer(id, msg.name, msg.wallet);
+          token = crypto.randomBytes(8).toString('hex');
+          reconnectTokens.set(token, id);
+        }
         ws.send(JSON.stringify({
-          t: MSG.WELCOME, id,
+          t: MSG.WELCOME, id, reconnect: token, resumed,
           round: { ...round.snapshot().round, ...pool.snapshot() },
           leaderboard: leaderboardTop(),
         }));
         break;
+      }
       case MSG.INPUT: round.applyInput(id, msg); break;
       case MSG.PICKUP: round.pickup(id, msg.x, msg.y); break;
       case MSG.DESCEND: round.descend(id); break;
@@ -115,7 +139,18 @@ wss.on('connection', (ws) => {
         break;
     }
   });
-  ws.on('close', () => { round.removePlayer(id); sockets.delete(id); });
+  ws.on('close', () => {
+    sockets.delete(id);
+    const player = round.players.get(id);
+    const dropToken = () => { for (const [tk, pid] of reconnectTokens) if (pid === id) reconnectTokens.delete(tk); };
+    if (player) {
+      // Keep their state alive for GRACE_MS so a refresh/blip can resume the same session.
+      player.disconnected = true;
+      pendingRemoval.set(id, setTimeout(() => {
+        round.removePlayer(id); pendingRemoval.delete(id); dropToken();
+      }, GRACE_MS));
+    } else { dropToken(); }
+  });
 });
 
 // Fixed-rate simulation + broadcast.

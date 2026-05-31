@@ -22,7 +22,10 @@ export class NetClient extends EventTarget {
       const failTimer = setTimeout(() => { if (!this.connected) this._goOffline(); }, 2500);
       ws.onopen = () => {
         clearTimeout(failTimer); this.connected = true;
-        this._send(MSG.HELLO, { name, wallet });
+        // Offer a saved token so a dropped session can resume within the grace window.
+        let reconnect = null;
+        try { reconnect = sessionStorage.getItem('noclip_reconnect'); } catch {}
+        this._send(MSG.HELLO, { name, wallet, reconnect });
       };
       ws.onmessage = ev => this._onMessage(ev.data);
       ws.onclose = () => { this.connected = false; if (!this.offline) this._goOffline(); };
@@ -45,6 +48,7 @@ export class NetClient extends EventTarget {
     switch (msg.t) {
       case MSG.WELCOME:
         this.id = msg.id; this.round = msg.round;
+        if (msg.reconnect) { try { sessionStorage.setItem('noclip_reconnect', msg.reconnect); } catch {} }
         this.dispatchEvent(new CustomEvent('welcome', { detail: { ...msg, offline: false } }));
         break;
       case MSG.STATE:

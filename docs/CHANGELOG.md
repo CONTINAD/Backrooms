@@ -2,6 +2,18 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 22 — Reconnection grace (live-game resilience)
+- Target: real robustness for a public web game — a brief connection blip / page refresh used
+  to wipe your race. (Verifiable; screenshot tool still wedged.)
+- Server issues a per-session `reconnect` token in WELCOME; on disconnect it keeps the player's
+  state alive for a 15s grace window instead of removing them. A HELLO carrying a valid token
+  within that window re-binds the player (same position/score/depth/dead state) onto the new
+  connection. Client stores the token in sessionStorage and resends it on connect.
+- VERIFIED via integration test on a fresh server: drop → reconnect → `resumed:true` with the
+  player's position preserved ([50,60]); the old connection id is gone (clean re-bind, no
+  duplicate); a bogus token does NOT resume. (The apparent "extra" player in the snapshot is
+  the preview harness's own headless browser client.)
+
 ## 2026-05-31 — Cycle 21 — Encounter director (two-monster balance)
 - Target: balance the new two-monster system — both could hunt at once, which would be
   unfairly overwhelming. (Verifiable; screenshot tool still wedged.)
