@@ -9,6 +9,7 @@
     "dev": "node server/server.js",
     "bot": "node bot/playtester.js",
     "loop": "node tools/improve-cycle.js",
+    "validate": "node tools/validate-levels.js 200",
     "verify-assets": "node tools/fetch-assets.js"
   },
   "dependencies": {

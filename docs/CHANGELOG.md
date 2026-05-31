@@ -2,6 +2,16 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 17 — Multi-seed validation sweep (regression gate)
+- Target: loop rigor — single-seed playtests can miss tail cases (a random exit yielding an
+  unsolvable/unsurvivable level). (Verifiable; screenshot tool still wedged.)
+- Added `tools/validate-levels.js` (npm run validate): sweeps N seeds, checks solvability,
+  connectivity, and best-case survivability; exits non-zero if ANY seed fails — a regression
+  gate for changes to maze gen / exit placement / almonds / sanity constants.
+- VERIFIED over 200 seeds: 100% solvable, 100% survivable, 0 fragmented, optimal times
+  68–199s (11–33% of the round), worst best-case sanity 19.3 (tight but never fatal). Confirms
+  the cycle-13 randomized exit is safe at scale.
+
 ## 2026-05-31 — Cycle 16 — Server hardening for the live public game
 - Target: correctness/security — the game is live on the open internet (prize-bearing), but the
   server trusted any WS message. (Verifiable; screenshot tool still wedged.)
