@@ -1,0 +1,17 @@
+# Render Blueprint — deploys the multiplayer game as a free web service with WebSockets.
+# How to use: push this repo to GitHub, then on render.com → New → Blueprint → pick the repo.
+services:
+  - type: web
+    name: backrooms-noclip
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "20.18.0"
+      - key: SOLANA_NETWORK
+        value: devnet
+      - key: DEMO_POOL_SOL
+        value: "1"
+    healthCheckPath: /api/health

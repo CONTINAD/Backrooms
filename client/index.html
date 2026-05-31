@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>BACKROOMS: NO-CLIP</title>
+<link rel="stylesheet" href="/styles.css" />
+<!-- Native ES module import map: no bundler, served by our node server from node_modules. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "/vendor/three.module.js",
+    "three/addons/": "/vendor/jsm/",
+    "shared/": "/shared/"
+  }
+}
+</script>
+</head>
+<body>
+  <!-- ===== HUD ===== -->
+  <div id="hud" class="hidden">
+    <div id="vignette"></div>
+    <div id="crosshair">+</div>
+    <!-- Diegetic "exit sense": a faint pull toward the no-clip seam so humans can win. -->
+    <div id="compass"><div id="compass-arrow">▲</div><div id="compass-dist"></div></div>
+
+    <div id="topbar">
+      <div id="round-info">
+        <span id="level-name">LEVEL 0 — THE LOBBY</span>
+        <span id="round-timer">10:00</span>
+      </div>
+      <div id="players-alive"><span id="alive-count">1</span> souls</div>
+    </div>
+
+    <div id="bottombar">
+      <div class="meter">
+        <label>SANITY</label>
+        <div class="bar"><div id="sanity-fill" class="fill"></div></div>
+      </div>
+      <div class="meter">
+        <label>HEALTH</label>
+        <div class="bar"><div id="hp-fill" class="fill hp"></div></div>
+      </div>
+      <div id="stats">
+        <span title="Almond Water">🧪 <b id="almond-count">0</b></span>
+        <span title="Depth">⬇ L<b id="depth-count">0</b></span>
+        <span title="Score">★ <b id="score-count">0</b></span>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+    <div id="entity-warning" class="hidden">SOMETHING IS NEAR</div>
+    <div id="chatlog"></div>
+  </div>
+
+  <!-- ===== Start / Lobby screen ===== -->
+  <div id="menu">
+    <div class="menu-card">
+      <h1 class="glitch" data-text="BACKROOMS">BACKROOMS</h1>
+      <h2 class="sub">N O — C L I P</h2>
+      <p class="tagline">You weren't supposed to be here. Find the exit. Stay sane. Survive the others.</p>
+
+      <div class="lobby">
+        <div class="lobby-row"><span id="lobby-status">Connecting to the level…</span></div>
+        <div class="lobby-row" id="pool-row">
+          <span>Prize pool</span><b id="pool-amount">— SOL</b>
+          <span class="net-badge" id="net-badge">devnet</span>
+        </div>
+        <div class="lobby-row">
+          <input id="name-input" maxlength="16" placeholder="Your name" />
+        </div>
+      </div>
+
+      <div class="menu-buttons">
+        <button id="connect-wallet" class="btn ghost">Connect Phantom</button>
+        <button id="play-btn" class="btn primary" disabled>ENTER THE BACKROOMS</button>
+      </div>
+      <div class="wallet-line" id="wallet-line"></div>
+
+      <details class="controls-help">
+        <summary>Controls</summary>
+        <ul>
+          <li><b>WASD</b> — move &nbsp; <b>Mouse</b> — look &nbsp; <b>Shift</b> — sprint</li>
+          <li><b>E</b> — pick up Almond Water / use exit &nbsp; <b>Click</b> — lock mouse</li>
+          <li><b>Esc</b> — release mouse &nbsp; <b>Enter</b> — chat</li>
+        </ul>
+      </details>
+      <p class="legal">Skill-based contest. Prizes on Solana <b>devnet</b> (test funds) by
+      default. See docs/COMPLIANCE.md. 18+.</p>
+    </div>
+  </div>
+
+  <!-- ===== Round-over screen ===== -->
+  <div id="results" class="hidden">
+    <div class="menu-card">
+      <h1 id="results-title">ROUND OVER</h1>
+      <ol id="scoreboard"></ol>
+      <div id="payout-line"></div>
+      <button id="again-btn" class="btn primary">NEXT ROUND</button>
+    </div>
+  </div>
+
+  <div id="loading">
+    <div class="loader-text">NO-CLIPPING…</div>
+    <div class="loader-bar"><div id="loader-fill"></div></div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

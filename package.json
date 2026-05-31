@@ -1,0 +1,21 @@
+{
+  "name": "backrooms-noclip",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BACKROOMS: NO-CLIP — online multiplayer first-person Backrooms survival game with Solana prize pools.",
+  "type": "module",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "bot": "node bot/playtester.js",
+    "loop": "node tools/improve-cycle.js",
+    "postinstall": "node tools/fetch-assets.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "three": "^0.169.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
