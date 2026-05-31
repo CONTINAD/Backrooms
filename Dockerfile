@@ -2,9 +2,10 @@
 FROM node:20-alpine
 WORKDIR /app
 
-# Install deps first for layer caching.
+# Install deps first for layer caching. --ignore-scripts skips the postinstall verifier,
+# which needs source files not yet copied at this layer (they arrive in `COPY . .` below).
 COPY package.json package-lock.json* ./
-RUN npm install --omit=dev
+RUN npm install --omit=dev --ignore-scripts
 
 # App source.
 COPY . .
