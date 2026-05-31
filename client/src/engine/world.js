@@ -103,6 +103,25 @@ export class World {
     baseInst.instanceMatrix.needsUpdate = true; baseInst.receiveShadow = true;
     this.group.add(baseInst);
 
+    // ---- Scattered electrical outlets — a defining Level 0 detail. ----
+    // Small cream faceplates centered on a seeded subset of wall segments (same transform as
+    // the baseboards, so orientation is correct), at outlet height. Centered on the wall plane
+    // → shows on whichever side faces the room, no "wrong-facing" risk. One InstancedMesh.
+    const orng = makeRng((level.seed ^ 0x51ed270b) >>> 0);
+    const outletSegs = segments.filter(() => orng() < 0.06);
+    if (outletSegs.length) {
+      const outGeo = new THREE.BoxGeometry(0.12, 0.18, 0.26);
+      const outMat = new THREE.MeshStandardMaterial({ color: 0xd8d2b8, roughness: 0.7, metalness: 0 });
+      const outInst = new THREE.InstancedMesh(outGeo, outMat, outletSegs.length);
+      outletSegs.forEach((s, i) => {
+        e.set(0, s[3], 0); q.setFromEuler(e);
+        m.compose(new THREE.Vector3(s[0], 0.35, s[2]), q, new THREE.Vector3(1, 1, 1));
+        outInst.setMatrixAt(i, m);
+      });
+      outInst.instanceMatrix.needsUpdate = true;
+      this.group.add(outInst);
+    }
+
     // ---- Fluorescent ceiling panels (emissive) as ONE instanced mesh ----
     // Every panel glows (cheap, drives bloom). Actual dynamic PointLights come from a small
     // pool that follows the player — using a real light per panel blows the GPU's fragment

@@ -2,6 +2,16 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 19 — Scattered wall electrical outlets (canon detail)
+- Target: "go hard on atmosphere" + research note that Level 0 has "scattered electrical
+  outlets". A GRAPHICS cycle despite the wedged screenshot tool, kept low-risk.
+- Added cream outlet faceplates on a seeded ~6% subset of wall segments (151 this seed), using
+  the SAME transform as the verified baseboards (so positioning is correct) and centered on the
+  wall plane (no wrong-facing risk). One InstancedMesh, still 16 lights.
+- VERIFIED present + no regression: outlet mesh has 151 instances, 7 instanced meshes total,
+  16 lights, game boots, no console errors. NOTE: aesthetic look not eyeballed (screenshot tool
+  still down, no Chrome) — committed LOCAL ONLY; will visually confirm before any push to live.
+
 ## 2026-05-31 — Cycle 18 — Regression test suite (npm test)
 - Target: loop safety — the loop keeps changing prize-critical logic; ad-hoc one-off checks
   don't persist. (Verifiable; screenshot tool still wedged, no Chrome available either.)
