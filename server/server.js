@@ -85,8 +85,18 @@ function broadcast(obj) {
 wss.on('connection', (ws) => {
   const id = crypto.randomBytes(6).toString('hex');
   sockets.set(id, ws);
+  // Per-connection abuse guards (public, prize-bearing game on the open internet).
+  let bucket = 60, lastRefill = Date.now();   // token bucket: ~60 msgs/sec sustained
   ws.on('message', raw => {
+    // 1) size cap — drop absurdly large frames before parsing.
+    if (raw.length > 4096) return;
+    // 2) rate limit — refill 60 tokens/sec, drop when empty.
+    const now = Date.now();
+    bucket = Math.min(120, bucket + (now - lastRefill) / 1000 * 60); lastRefill = now;
+    if (bucket < 1) return; bucket -= 1;
+
     let msg; try { msg = JSON.parse(raw); } catch { return; }
+    if (!msg || typeof msg.t !== 'string') return;
     switch (msg.t) {
       case MSG.HELLO:
         round.addPlayer(id, msg.name, msg.wallet);

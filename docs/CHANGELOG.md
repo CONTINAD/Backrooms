@@ -2,6 +2,17 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 16 — Server hardening for the live public game
+- Target: correctness/security — the game is live on the open internet (prize-bearing), but the
+  server trusted any WS message. (Verifiable; screenshot tool still wedged.)
+- `round.applyInput` now **sanitizes** every field: non-finite numbers rejected, positions/stats
+  clamped to sane ranges (so NaN/Infinity can't poison the anti-cheat distance math or other
+  players' rendering), names bounded to 16 chars. Added per-connection **4KB frame cap** and a
+  **token-bucket rate limit** (~60 msg/s) in `server.js`.
+- VERIFIED: unit test confirms all malformed values clamp (NaN→0, sanity 9999→100, name×100→16)
+  while valid input passes through; live test — a client spamming a 9000-char frame + 300-message
+  flood was handled gracefully, a normal connect still got WELCOME, server stayed up (200).
+
 ## 2026-05-31 — Cycle 15 — Smarter AI playtester: survivability simulation
 - Target: upgrade the autonomous loop's "pro gamer" so it catches BALANCE issues, not just
   maze solvability (directly serves the original "AI that learns to make it better" ask).
