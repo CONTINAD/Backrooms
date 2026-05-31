@@ -2,6 +2,15 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 18 — Regression test suite (npm test)
+- Target: loop safety — the loop keeps changing prize-critical logic; ad-hoc one-off checks
+  don't persist. (Verifiable; screenshot tool still wedged, no Chrome available either.)
+- Added `tools/test.js` (npm test): 15 assertions consolidating the invariants verified across
+  cycles — anti-cheat escape validation, input sanitization/clamping, death/escape feed,
+  scoring + leaderboard win-credit, and seed determinism (same seed → same exit, far exit).
+  Pure, no server needed; exits non-zero on any failure.
+- VERIFIED: 15/15 pass, exit 0. Now regressions in the prize/race logic get caught automatically.
+
 ## 2026-05-31 — Cycle 17 — Multi-seed validation sweep (regression gate)
 - Target: loop rigor — single-seed playtests can miss tail cases (a random exit yielding an
   unsolvable/unsurvivable level). (Verifiable; screenshot tool still wedged.)

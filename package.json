@@ -10,6 +10,7 @@
     "bot": "node bot/playtester.js",
     "loop": "node tools/improve-cycle.js",
     "validate": "node tools/validate-levels.js 200",
+    "test": "node tools/test.js",
     "verify-assets": "node tools/fetch-assets.js"
   },
   "dependencies": {
