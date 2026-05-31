@@ -2,6 +2,15 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 7 — Glowing EXIT sign (landmark + atmosphere)
+- Target: playtest "content/atmosphere polish" + human exit-findability.
+- Added a flickering, bloom-glowing red **EXIT sign** above the escape seam
+  (`world.js` `_buildExit`): canvas-textured emissive plane that billboards toward the player
+  so it's readable from any approach. A striking red landmark in the yellow gloom that doubles
+  as confirmation of the win point for the race. Verified rendering (clear "EXIT" with glow).
+- Dialed the purple seam light down (16→9) so the red sign reads on approach. Still 16 lights,
+  booting clean.
+
 ## 2026-05-31 — DEPLOYED LIVE 🚀
 - Game is live on Railway: **https://web-production-61936.up.railway.app** (friends can play,
   no wallet needed). Deployed via Railway GraphQL API (workspace token; CLI couldn't run

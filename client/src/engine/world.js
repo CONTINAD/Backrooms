@@ -167,11 +167,29 @@ export class World {
       new THREE.MeshStandardMaterial({ color: 0x05060a, emissive: 0x1a0030, emissiveIntensity: 0.8 })
     );
     const p = level.exit;
-    frame.position.set(p.x * TILE + TILE / 2, WALL_H * 0.475, p.y * TILE + TILE / 2);
+    const ex = p.x * TILE + TILE / 2, ez = p.y * TILE + TILE / 2;
+    frame.position.set(ex, WALL_H * 0.475, ez);
     this.group.add(frame);
-    const light = new THREE.PointLight(0x7a4dff, 16, 8, 2);
+    const light = new THREE.PointLight(0x7a4dff, 9, 7, 2);
     light.position.copy(frame.position); this.group.add(light);
     this.exitMesh = frame; this.exitLight = light;
+
+    // A flickering EXIT sign above the seam — a landmark you can trust to be the way out.
+    const cv = document.createElement('canvas'); cv.width = 256; cv.height = 96;
+    const cx = cv.getContext('2d');
+    cx.fillStyle = '#0b0402'; cx.fillRect(0, 0, 256, 96);
+    cx.strokeStyle = '#3a0d06'; cx.lineWidth = 6; cx.strokeRect(3, 3, 250, 90);
+    cx.fillStyle = '#ff3a22'; cx.font = 'bold 62px Arial'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.shadowColor = '#ff5a3a'; cx.shadowBlur = 24; cx.fillText('EXIT', 128, 52);
+    const signTex = new THREE.CanvasTexture(cv);
+    const signMat = new THREE.MeshStandardMaterial({
+      map: signTex, emissive: 0xff2a18, emissiveMap: signTex, emissiveIntensity: 2.2,
+      transparent: true, side: THREE.DoubleSide, depthWrite: false,
+    });
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.38), signMat);
+    sign.position.set(ex, WALL_H * 0.92, ez);
+    this.group.add(sign);
+    this.exitSign = sign;
   }
 
   update(dt, t, playerPos) {
@@ -205,6 +223,11 @@ export class World {
       a.mesh.rotation.y += dt * 1.2;
       a.mesh.position.y = 0.5 + Math.sin(t * 2 + a.cell.x) * 0.08;
     }
-    if (this.exitLight) this.exitLight.intensity = 13 + Math.sin(t * 3) * 5;
+    if (this.exitLight) this.exitLight.intensity = 8 + Math.sin(t * 3) * 3;
+    if (this.exitSign) {
+      // buzzing-sign flicker + billboard toward the player so it's readable on approach
+      this.exitSign.material.emissiveIntensity = 1.8 + Math.sin(t * 13) * 0.3 + (Math.random() < 0.05 ? -1.2 : 0);
+      if (playerPos) this.exitSign.lookAt(playerPos.x, this.exitSign.position.y, playerPos.z);
+    }
   }
 }
