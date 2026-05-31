@@ -2,6 +2,19 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 23 — Visual channel restored + panel-bloom exposure fix
+- BREAKTHROUGH: the preview screenshot tool had been wedged ~12 cycles (turns out the headless
+  tab reports innerWidth=0, so the per-frame resize sync shrank the canvas to 0×0). Worked
+  around it with `tools/shot-receiver.js`: the page exports its canvas to a JPEG via eval and
+  POSTs it to a tiny local sink (:8099) → written to tools/shot.jpg → Read as an image. Now
+  graphics are verifiable again, with an explicit render size.
+- With eyes back on the game, FIXED a real issue: the fluorescent panels were blowing out to a
+  harsh featureless white blob. Lowered panel emissive (1.35→1.0), bloom strength (0.28→0.20)
+  and threshold (0.92→1.0), and light-shaft opacity (0.07→0.05). Re-captured before/after:
+  panels now read as glowing fixtures, not voids.
+- VERIFIED visually: confirmed the accumulated batch all renders correctly — ceiling beams,
+  baseboards, light shafts, dust, liminal corridors. (shot.jpg gitignored.)
+
 ## 2026-05-31 — Cycle 22 — Reconnection grace (live-game resilience)
 - Target: real robustness for a public web game — a brief connection blip / page refresh used
   to wipe your race. (Verifiable; screenshot tool still wedged.)

@@ -22,7 +22,7 @@ export class World {
     const floorTex = carpetTexture(); floorTex.repeat.set(1, 1);
     this.floorMat = new THREE.MeshStandardMaterial({ map: floorTex, roughness: 1, metalness: 0 });
     this.ceilMat = new THREE.MeshStandardMaterial({ map: ceilingTexture(), roughness: 0.95, metalness: 0 });
-    this.panelMat = new THREE.MeshStandardMaterial({ color: 0xfff4d0, emissive: 0xfff0c0, emissiveIntensity: 1.35 });
+    this.panelMat = new THREE.MeshStandardMaterial({ color: 0xfff4d0, emissive: 0xfff0c0, emissiveIntensity: 1.0 });
   }
 
   clear() {
@@ -155,7 +155,7 @@ export class World {
     // One additive InstancedMesh (commutative blending → no sort needed), cheap, big payoff.
     const shaftGeo = new THREE.CylinderGeometry(0.35, 1.5, WALL_H * 0.96, 10, 1, true);
     const shaftMat = new THREE.MeshBasicMaterial({
-      color: 0xffeec0, transparent: true, opacity: 0.07, depthWrite: false,
+      color: 0xffeec0, transparent: true, opacity: 0.05, depthWrite: false,
       blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
     });
     const shafts = new THREE.InstancedMesh(shaftGeo, shaftMat, positions.length);
@@ -248,7 +248,7 @@ export class World {
       });
     }
     // Subtle global panel emissive flicker (shared material).
-    this.panelMat.emissiveIntensity = 1.3 + Math.sin(t * 9.3) * 0.12 + (Math.random() < 0.04 ? -0.5 : 0);
+    this.panelMat.emissiveIntensity = 1.0 + Math.sin(t * 9.3) * 0.1 + (Math.random() < 0.04 ? -0.45 : 0);
 
     // Bob almond bottles.
     for (const a of this.almondMeshes) {

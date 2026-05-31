@@ -54,7 +54,7 @@ export class Post {
     this.composer = new EffectComposer(renderer);
     this.composer.addPass(new RenderPass(scene, camera));
     const size = renderer.getSize(new THREE.Vector2());
-    this.bloom = new UnrealBloomPass(size, 0.32, 0.5, 0.92);
+    this.bloom = new UnrealBloomPass(size, 0.22, 0.45, 1.0);
     this.composer.addPass(this.bloom);
     this.fx = new ShaderPass(GrainVignetteCA);
     this.composer.addPass(this.fx);
@@ -64,7 +64,7 @@ export class Post {
   render(dt, sanity01) {
     this.fx.uniforms.uTime.value += dt;
     this.fx.uniforms.uSanity.value += (sanity01 - this.fx.uniforms.uSanity.value) * Math.min(1, dt * 2);
-    this.bloom.strength = 0.28 + (1 - sanity01) * 0.35;
+    this.bloom.strength = 0.2 + (1 - sanity01) * 0.3;
     this.composer.render();
   }
 }
