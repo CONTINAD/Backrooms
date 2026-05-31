@@ -75,6 +75,20 @@ export class World {
     this.group.add(inst);
     this.wallInstanced = inst;
 
+    // ---- Baseboards: dark vinyl trim where every wall meets the carpet. ----
+    // Reuses the wall segment placements; one InstancedMesh. This single architectural
+    // detail is what makes the rooms read as a real building instead of floating planes.
+    const baseGeo = new THREE.BoxGeometry(S, 0.22, 0.26);
+    const baseMat = new THREE.MeshStandardMaterial({ color: 0x2a2614, roughness: 0.6, metalness: 0.05 });
+    const baseInst = new THREE.InstancedMesh(baseGeo, baseMat, segments.length);
+    segments.forEach((s, i) => {
+      e.set(0, s[3], 0); q.setFromEuler(e);
+      m.compose(new THREE.Vector3(s[0], 0.11, s[2]), q, new THREE.Vector3(1, 1, 1));
+      baseInst.setMatrixAt(i, m);
+    });
+    baseInst.instanceMatrix.needsUpdate = true; baseInst.receiveShadow = true;
+    this.group.add(baseInst);
+
     // ---- Fluorescent ceiling panels (emissive) as ONE instanced mesh ----
     // Every panel glows (cheap, drives bloom). Actual dynamic PointLights come from a small
     // pool that follows the player — using a real light per panel blows the GPU's fragment

@@ -2,6 +2,13 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 6 — Baseboards (architectural grounding)
+- Target: playtest finding "content/atmosphere polish".
+- Added dark vinyl **baseboards** where every wall meets the carpet — one InstancedMesh that
+  reuses the wall segment placements (1 draw call). This single detail makes rooms read as a
+  real office building instead of floating planes. Pairs with the light shafts + dust for a
+  cohesive liminal look. Still 16 lights, booting clean, verified on screen.
+
 ## 2026-05-31 — Cycle 5 — Lore-accurate lighting + hazy light shafts (RESEARCH+BUILD)
 - Researched canonical Level 0 (Backrooms wikis): fluorescents are "seemingly distributed at
   random", ceiling = acoustic tiles split by darker support beams, oppressive hazy glow.
