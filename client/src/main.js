@@ -311,6 +311,9 @@ class Game {
     $('#sanity-fill').style.width = (this.sanity / SANITY_MAX * 100) + '%';
     $('#sanity-fill').style.background = this.sanity < LOW_SANITY ? '#b5482e' : '#5ad0d8';
     $('#hp-fill').style.width = (this.hp / PLAYER_HP * 100) + '%';
+    const stam = $('#stam-fill');
+    stam.style.width = (this.player.stamina) + '%';
+    stam.classList.toggle('winded', this.player._winded);
     $('#almond-count').textContent = this.almond;
     $('#depth-count').textContent = this.depth;
     $('#score-count').textContent = this._score();

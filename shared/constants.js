@@ -26,6 +26,10 @@ export const PLAYER_HP = 100;
 
 export const PLAYER_SPEED = 4.2;           // m/s walk
 export const PLAYER_SPRINT = 7.0;          // m/s sprint (costs stamina)
+export const STAMINA_MAX = 100;
+export const STAMINA_DRAIN = 24;           // per second while sprinting (~4s flat-out)
+export const STAMINA_REGEN = 14;           // per second while not sprinting
+export const STAMINA_MIN = 12;             // must recover to this before sprinting again
 export const PLAYER_EYE = 1.7;             // camera height
 export const PLAYER_RADIUS = 0.35;         // collision radius
 

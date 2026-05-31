@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import {
   TILE, PLAYER_SPEED, PLAYER_SPRINT, PLAYER_EYE, PLAYER_RADIUS, hasWall, BIT,
+  STAMINA_MAX, STAMINA_DRAIN, STAMINA_REGEN, STAMINA_MIN,
 } from 'shared/constants.js';
 
 export class Player {
@@ -14,7 +15,9 @@ export class Player {
     this.bob = 0;
     this.stepAccum = 0;
     this.onStep = null;     // callback for footstep audio
-    this.sprinting = false;
+    this.sprinting = false; // shift held (intent)
+    this.stamina = STAMINA_MAX;
+    this._winded = false;   // true after exhausting; must recover to STAMINA_MIN
     this._bindKeys();
   }
 
@@ -40,6 +43,7 @@ export class Player {
   spawnAt(cellX, cellY) {
     this.object.position.set(cellX * TILE + TILE / 2, PLAYER_EYE, cellY * TILE + TILE / 2);
     this.velocity.set(0, 0, 0);
+    this.stamina = STAMINA_MAX; this._winded = false;
   }
 
   update(dt, level) {
@@ -47,7 +51,19 @@ export class Player {
     // desired direction in local space
     const fwd = (this.keys['KeyW'] ? 1 : 0) - (this.keys['KeyS'] ? 1 : 0);
     const str = (this.keys['KeyD'] ? 1 : 0) - (this.keys['KeyA'] ? 1 : 0);
-    const speed = this.sprinting && fwd > 0 ? PLAYER_SPRINT : PLAYER_SPEED;
+
+    // Stamina-gated sprint: drains while sprinting, regens otherwise. Exhausting it "winds"
+    // you — you can't sprint again until you've recovered to STAMINA_MIN.
+    const wantsSprint = this.sprinting && fwd > 0 && !this._winded && this.stamina > 0;
+    if (wantsSprint) {
+      this.stamina = Math.max(0, this.stamina - STAMINA_DRAIN * dt);
+      if (this.stamina <= 0) this._winded = true;
+    } else {
+      this.stamina = Math.min(STAMINA_MAX, this.stamina + STAMINA_REGEN * dt);
+      if (this._winded && this.stamina >= STAMINA_MIN) this._winded = false;
+    }
+    this.isSprinting = wantsSprint;
+    const speed = wantsSprint ? PLAYER_SPRINT : PLAYER_SPEED;
 
     const dir = new THREE.Vector3();
     const forward = new THREE.Vector3();
@@ -69,7 +85,7 @@ export class Player {
 
     // Head-bob + footsteps
     if (moving) {
-      const rate = (this.sprinting ? 11 : 7);
+      const rate = (this.isSprinting ? 11 : 7);
       this.bob += dt * rate;
       this.stepAccum += dt * rate;
       if (this.stepAccum > Math.PI) { this.stepAccum -= Math.PI; if (this.onStep) this.onStep(); }

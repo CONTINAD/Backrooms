@@ -2,6 +2,16 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 11 — Sprint stamina (race tactics)
+- Target: "make it play stellar" — sprint was a free, hold-forever button with no tradeoff.
+  Chose a gameplay/state change (verifiable without the still-wedged screenshot tool).
+- Sprint now drains a **stamina** bar (~4s flat-out), regenerates when you ease off, and if you
+  fully exhaust it you're "winded" and can't sprint until recovered to STAMINA_MIN. Makes the
+  race tactical: bank stamina to dash to the seam or outrun The Hollow. Added a STAMINA meter
+  to the HUD (mirrors sanity/health) and reset on spawn.
+- VERIFIED via manual ticks: drains while sprinting → winded at 0 → sprint denied while winded
+  → regenerates at rest → sprint re-enabled after recovery. No console errors.
+
 ## 2026-05-31 — Cycle 10 — Anti-cheat: server-validated escape (prize integrity)
 - Target: prize/scoring integrity (priority ladder: correctness > polish). Chose a
   server-logic change because the preview screenshot tool is still wedged this session.

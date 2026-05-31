@@ -72,6 +72,8 @@ h1.glitch{font-size:64px;letter-spacing:10px;color:var(--yellow);text-shadow:0 0
 .meter .fill{height:100%;width:100%;background:var(--sanity);transition:width .2s,background .4s;
   box-shadow:0 0 10px #5ad0d855}
 .meter .fill.hp{background:var(--hp)}
+.meter .fill.stam{background:#caa64a;box-shadow:0 0 10px #caa64a55}
+.meter .fill.stam.winded{background:#9a5a2a}
 #stats{display:flex;gap:16px;font-size:14px;margin-top:6px;color:var(--ink);text-shadow:0 0 6px #000}
 #stats b{color:var(--yellow)}
 #toast{position:fixed;left:50%;top:30%;transform:translateX(-50%);font-size:20px;color:var(--yellow);
