@@ -2,6 +2,18 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 20 — Second entity: THE HOUND (pursuit predator)
+- Target: "more monsters" (user request). A new threat that contrasts The Hollow: where the
+  Hollow freezes when watched, the Hound HUNTS when it sees you.
+- `client/src/engine/hound.js`: a low, wrong-proportioned quadruped with glowing red eyes
+  (emissive only — NO new light, stays ≤16). State machine prowling → chasing (on maze
+  line-of-sight) → back to prowling when you break sight around a corner. Sprints at 6.6 m/s,
+  bites for 26 HP, growls (sting + breath) the moment it locks on. Wired into the sanity/damage
+  loop and the on-screen warning ("RUN" / "SOMETHING HUNTS YOU").
+- VERIFIED behavior via eval: same-cell LOS → detects + chases (justDetected fires); sight
+  blocked → loses you and reverts to prowling; 16 lights; no console errors. NOTE: model look
+  not eyeballed (screenshot tool down, no Chrome) — committed LOCAL ONLY; visual check before push.
+
 ## 2026-05-31 — Cycle 19 — Scattered wall electrical outlets (canon detail)
 - Target: "go hard on atmosphere" + research note that Level 0 has "scattered electrical
   outlets". A GRAPHICS cycle despite the wedged screenshot tool, kept low-risk.

@@ -7,6 +7,7 @@ import {
 import { World } from './engine/world.js';
 import { Player } from './engine/player.js';
 import { Hollow } from './engine/monster.js';
+import { Hound } from './engine/hound.js';
 import { Post } from './engine/post.js';
 import { Dust } from './engine/dust.js';
 import { AudioEngine } from './engine/audio.js';
@@ -55,6 +56,7 @@ class Game {
     this.player.onStep = () => this.audio.footstep();
     this.scene.add(this.player.object);
     this.monster = new Hollow(this.scene);
+    this.hound = new Hound(this.scene);
     this.dust = new Dust(this.scene);
     this.post = new Post(this.renderer, this.scene, this.camera);
   }
@@ -153,18 +155,22 @@ class Game {
     // ---- Sanity model ----
     const lightLevel = this._lightAt(pos);
     const sm = this.monster.update(dt, t, pos, this.camera, this.sanity, this.level);
+    const hd = this.hound.update(dt, t, pos, this.sanity, this.level);
+    if (hd.justDetected) { this.audio.sting(); this.audio.breath(1); }   // a growl as it locks on
     let drain = SANITY_DRAIN;
     if (lightLevel < 0.35) drain *= SANITY_DARK_MULT;
-    if (sm.visible) drain *= 1 + sm.drain * (SANITY_ENTITY_MULT - 1);
+    const entityDrain = Math.max(sm.visible ? sm.drain : 0, hd.visible ? hd.drain : 0);
+    if (entityDrain > 0) drain *= 1 + entityDrain * (SANITY_ENTITY_MULT - 1);
     if (this.alive) this.sanity = Math.max(0, this.sanity - drain * dt);
 
     if (this.sanity <= 0 && this.alive) this.hp = Math.max(0, this.hp - SANITY_DAMAGE * dt);
     if (sm.attack) { this.hp = Math.max(0, this.hp - 38); this.audio.sting(); this._shake(1); this._jumpFlash(); }
+    if (hd.attack) { this.hp = Math.max(0, this.hp - 26); this.audio.sting(); this._shake(0.7); this._jumpFlash(); }
     if (this.hp <= 0 && this.alive) this._die();
 
     // Heartbeat + tension audio
     const tension = THREE.MathUtils.clamp((LOW_SANITY - this.sanity) / LOW_SANITY, 0, 1);
-    this.audio.setTension(Math.max(tension, sm.visible ? sm.drain : 0));
+    this.audio.setTension(Math.max(tension, entityDrain));
     this._beatAccum = (this._beatAccum || 0) + dt;
     if (this.sanity < LOW_SANITY && this._beatAccum > (0.4 + (this.sanity / LOW_SANITY) * 0.6)) {
       this.audio.heartbeat(1 - this.sanity / LOW_SANITY); this._beatAccum = 0;
@@ -187,7 +193,7 @@ class Game {
     this._checkPickups(pos);
     this._checkExit(pos);
     this._updateAvatars(dt);
-    this._updateHud(sm, dt);
+    this._updateHud(sm, dt, hd);
 
     // ---- Network tick ----
     this.tickAccum += dt;
@@ -309,7 +315,7 @@ class Game {
   }
 
   // ---------- HUD ----------
-  _updateHud(sm, dt) {
+  _updateHud(sm, dt, hd) {
     $('#sanity-fill').style.width = (this.sanity / SANITY_MAX * 100) + '%';
     $('#sanity-fill').style.background = this.sanity < LOW_SANITY ? '#b5482e' : '#5ad0d8';
     $('#hp-fill').style.width = (this.hp / PLAYER_HP * 100) + '%';
@@ -329,9 +335,15 @@ class Game {
     if (this.secondsLeft <= 0 && this.alive) this._onRoundOver({ scores: this._soloBoard(), timeout: true });
     this._updateCompass();
     const warn = $('#entity-warning');
-    const showWarn = sm.visible && sm.dist < 14;
+    const houndClose = hd && hd.visible && hd.dist < 14;
+    const showWarn = (sm.visible && sm.dist < 14) || houndClose;
     warn.classList.toggle('hidden', !showWarn);
-    if (showWarn) warn.textContent = sm.observed ? "DON'T LOOK AWAY" : (sm.dist < 6 ? 'IT IS BEHIND YOU' : 'SOMETHING IS NEAR');
+    if (showWarn) {
+      warn.textContent = (hd && hd.chasing) ? 'RUN' :
+        sm.observed ? "DON'T LOOK AWAY" :
+        houndClose ? 'SOMETHING HUNTS YOU' :
+        (sm.dist < 6 ? 'IT IS BEHIND YOU' : 'SOMETHING IS NEAR');
+    }
     document.documentElement.style.setProperty('--san', this.sanity);
   }
 
