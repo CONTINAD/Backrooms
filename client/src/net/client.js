@@ -68,6 +68,9 @@ export class NetClient extends EventTarget {
       case MSG.CHAT:
         this.dispatchEvent(new CustomEvent('chat', { detail: msg }));
         break;
+      case MSG.FEED:
+        this.dispatchEvent(new CustomEvent('feed', { detail: msg }));
+        break;
     }
   }
 

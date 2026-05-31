@@ -2,6 +2,16 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 12 — Live multiplayer event feed (race tension)
+- Target: "make it play stellar" for multiplayer — players had no awareness of rivals' fates.
+  Chose a verifiable networking/UI change (screenshot tool still wedged).
+- Server now queues feed lines on death ("☠ Name succumbed…") and escape ("🏆 Name
+  NO-CLIPPED OUT — escaped first!"), drained + broadcast each tick (`server.js`/`round.js`).
+  Client shows them in the existing chat log — death in red, escape in gold — and toasts the
+  escape. Makes a round feel like a live competitive arena.
+- VERIFIED end-to-end: server unit test emits both lines; client eval confirms both rows
+  render with correct colors + the escape toast fires. No console errors.
+
 ## 2026-05-31 — Cycle 11 — Sprint stamina (race tactics)
 - Target: "make it play stellar" — sprint was a free, hold-forever button with no tradeoff.
   Chose a gameplay/state change (verifiable without the still-wedged screenshot tool).

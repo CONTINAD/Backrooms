@@ -141,5 +141,5 @@ export function cellCenter(cx, cy) {
 export const MSG = {
   HELLO: 'hello', WELCOME: 'welcome', STATE: 'state', INPUT: 'input',
   PICKUP: 'pickup', DESCEND: 'descend', ROUND: 'round', CHAT: 'chat',
-  JOIN: 'join', LEAVE: 'leave', DEAD: 'dead', WIN: 'win',
+  JOIN: 'join', LEAVE: 'leave', DEAD: 'dead', WIN: 'win', FEED: 'feed',
 };

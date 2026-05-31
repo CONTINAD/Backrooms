@@ -91,6 +91,7 @@ class Game {
     this.net.addEventListener('state', e => this._onState(e.detail));
     this.net.addEventListener('win', e => this._onRoundOver(e.detail));
     this.net.addEventListener('chat', e => this._addChat(e.detail.name, e.detail.text));
+    this.net.addEventListener('feed', e => this._addFeed(e.detail.text, e.detail.kind));
     // Start connecting immediately so the lobby fills.
     this.net.connect($('#name-input').value, this.wallet.pubkey);
   }
@@ -372,6 +373,16 @@ class Game {
     const log = $('#chatlog'); const d = document.createElement('div');
     d.textContent = `${name}: ${text}`; log.appendChild(d);
     while (log.children.length > 6) log.removeChild(log.firstChild);
+  }
+  // Live multiplayer event feed (eliminations / escapes) — reuses the chat log.
+  _addFeed(text, kind) {
+    const log = $('#chatlog'); const d = document.createElement('div');
+    d.textContent = text;
+    d.style.color = kind === 'escape' ? '#d8c15a' : '#b5482e';
+    d.style.fontWeight = 'bold';
+    log.appendChild(d);
+    while (log.children.length > 8) log.removeChild(log.firstChild);
+    if (kind === 'escape') this._toast(text);
   }
   _shake(amount) {
     this._shakeAmt = amount;

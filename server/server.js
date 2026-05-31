@@ -105,6 +105,10 @@ setInterval(() => {
   round.tick(dt);
   const snap = round.snapshot();
   broadcast({ t: MSG.STATE, players: snap.players, round: { ...snap.round, ...pool.snapshot() } });
+  // Drain + broadcast the event feed (eliminations / escapes).
+  if (round.feed && round.feed.length) {
+    for (const ev of round.feed.splice(0)) broadcast({ t: MSG.FEED, text: ev.text, kind: ev.kind });
+  }
 }, 1000 / TICK_HZ);
 
 async function onRoundEnd(r) {

@@ -20,11 +20,13 @@ export class Round {
     this.state = 'lobby';        // lobby | playing | over
     this.lobbyLeft = LOBBY_SECONDS;
     this.eventLog = [];
+    this.feed = [];              // transient event-feed lines drained + broadcast by the server
     this.winners = null;
     this._log('round_seed', { seed: this.seed });
   }
 
   _log(type, data) { this.eventLog.push({ t: Date.now(), type, data }); }
+  _feed(text, kind) { this.feed.push({ text, kind }); }
 
   addPlayer(id, name, wallet) {
     this.players.set(id, {
@@ -43,7 +45,10 @@ export class Round {
     p.depth = Math.max(p.depth, msg.depth ?? p.depth);
     p.sanity = msg.sanity ?? p.sanity; p.hp = msg.hp ?? p.hp;
     p.almond = msg.almond ?? p.almond; p.name = msg.name ?? p.name;
-    if (msg.dead && !p.dead) { p.dead = true; this._log('dead', { id }); }
+    if (msg.dead && !p.dead) {
+      p.dead = true; this._log('dead', { id });
+      this._feed(`☠ ${p.name} succumbed to the Backrooms`, 'death');
+    }
   }
 
   pickup(id, x, y) {
@@ -68,6 +73,7 @@ export class Round {
     if (this.state === 'playing' && !this.escapedBy) {
       this.escapedBy = id; p.escaped = true;
       this._log('escape', { id, name: p.name, atSeconds: ROUND_SECONDS - this.secondsLeft });
+      this._feed(`🏆 ${p.name} NO-CLIPPED OUT — escaped first!`, 'escape');
       this._end();
     }
   }
