@@ -2,6 +2,16 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 15 — Smarter AI playtester: survivability simulation
+- Target: upgrade the autonomous loop's "pro gamer" so it catches BALANCE issues, not just
+  maze solvability (directly serves the original "AI that learns to make it better" ask).
+- `bot/playtester.js` now simulates the sanity model along the optimal exit route (best case:
+  lit, grabs Almond Water it passes) and reports survives / min-sanity / water-on-path, with
+  new findings: CRITICAL if the optimal route is unsurvivable, a warning if the sanity margin
+  is razor-thin. Surfaced in METRICS.md too.
+- VERIFIED by running the bot: reports `survives=true, min sanity=70.1, water on path=3` —
+  level is comfortably balanced; no false alarms. No errors.
+
 ## 2026-05-31 — Cycle 14 — Session leaderboard / champions (competitive retention)
 - Target: "make it play stellar" — a prize race needs persistent stakes & rivalry. (Verifiable;
   screenshot tool still wedged.)

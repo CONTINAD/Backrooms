@@ -12,6 +12,7 @@ import path from 'node:path';
 import url from 'node:url';
 import {
   generateLevel, hasWall, BIT, cellCenter, TILE, PLAYER_SPEED, MSG, VERSION, ROUND_SECONDS,
+  SANITY_MAX, SANITY_DRAIN, ALMOND_RESTORE,
 } from '../shared/constants.js';
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
@@ -48,6 +49,29 @@ function bfsPath(level, a, b) {
   return [];
 }
 
+// Simulate the sanity/survival model along the optimal exit route (best case: lit corridors,
+// no entity nearby). A "pro" grabs Almond Water it walks over. If even this best case nearly
+// dies, the level is mis-tuned (drain too fast / too few pickups on the path).
+function simulateSurvival(level, exitPath) {
+  if (!exitPath.length) return { survives: false, minSanity: 0, almondsOnRoute: 0, diedAtFraction: 0 };
+  const almondSet = new Set(level.almonds.map(a => a.y * level.w + a.x));
+  const stepTime = TILE / PLAYER_SPEED;
+  let sanity = SANITY_MAX, minSanity = SANITY_MAX, diedAt = -1, almondsOnRoute = 0;
+  for (let i = 0; i < exitPath.length; i++) {
+    const c = exitPath[i];
+    if (almondSet.has(c.y * level.w + c.x)) { sanity = Math.min(SANITY_MAX, sanity + ALMOND_RESTORE); almondsOnRoute++; }
+    sanity -= SANITY_DRAIN * stepTime;
+    if (sanity < minSanity) minSanity = sanity;
+    if (sanity <= 0 && diedAt < 0) diedAt = i;
+  }
+  return {
+    survives: diedAt < 0,
+    minSanity: +Math.max(0, minSanity).toFixed(1),
+    almondsOnRoute,
+    diedAtFraction: diedAt < 0 ? null : +(diedAt / exitPath.length).toFixed(2),
+  };
+}
+
 // Full reachability + dead-end / branching analysis for "fun" heuristics.
 function analyze(level) {
   const reachable = bfsFlood(level, level.start);
@@ -59,6 +83,7 @@ function analyze(level) {
     if (reachable.has(y * level.w + x) && neighbors(level, x, y).length === 1) deadEnds++;
   }
   const cells = level.w * level.h;
+  const survival = simulateSurvival(level, exitPath);
   return {
     solvable: exitPath.length > 0,
     optimalExitCells: exitPath.length,
@@ -68,6 +93,7 @@ function analyze(level) {
     almondReachable: almondReach.length,
     deadEnds,
     deadEndRatio: +(deadEnds / cells).toFixed(3),
+    survival,
     exitPath, almondReach,
   };
 }
@@ -103,6 +129,7 @@ function play() {
           optimalExitCells: anal.optimalExitCells, reachableFraction: anal.reachableFraction,
           almondReachable: `${anal.almondReachable}/${anal.almondTotal}`,
           deadEnds: anal.deadEnds, deadEndRatio: anal.deadEndRatio,
+          survival: anal.survival,
         } : null,
         play: { reachedExit, almondsGrabbed, descended },
         errors,
@@ -181,6 +208,10 @@ function deriveFindings(anal, play) {
   if (optFrac < 0.04) f.push(`Exit too close (~${anal.optimalExitSeconds}s, ${(optFrac * 100) | 0}% of round) — trivial; move exit / enlarge maze.`);
   if (optFrac > 0.6) f.push(`Exit too far (~${anal.optimalExitSeconds}s, ${(optFrac * 100) | 0}% of round) — even optimal play barely finishes; shrink maze or move exit.`);
   if (anal.deadEndRatio > 0.18) f.push(`High dead-end ratio (${anal.deadEndRatio}) — frustrating; braid more loops.`);
+  // Survivability of the optimal route on the sanity model (best case).
+  const s = anal.survival;
+  if (s && !s.survives) f.push(`CRITICAL BALANCE: optimal route is UNSURVIVABLE on sanity alone — dies at ${(s.diedAtFraction * 100) | 0}% of the way (only ${s.almondsOnRoute} Almond Water on the path). Slow SANITY_DRAIN or scatter more water along routes.`);
+  else if (s && s.minSanity < 12) f.push(`Tight sanity margin: best-case route bottoms out at ${s.minSanity} sanity (${s.almondsOnRoute} water on path) — risky for real players; consider more pickups or slower drain.`);
   if (play.errors.length) f.push('Protocol errors observed: ' + play.errors.join('; '));
   // Only flag a non-finish as a PROBLEM if the bot had more time than the optimal route needs.
   const hadEnoughTime = Number(process.env.BOT_RUN_MS || 20000) > anal.optimalExitSeconds * 1000;
@@ -212,6 +243,8 @@ function writeReport(r) {
     lines.push(`- reachable fraction: ${r.analysis.reachableFraction}`);
     lines.push(`- almond water reachable: ${r.analysis.almondReachable}`);
     lines.push(`- dead ends: ${r.analysis.deadEnds} (ratio ${r.analysis.deadEndRatio})`);
+    const s = r.analysis.survival;
+    if (s) lines.push(`- survivability (best-case route): survives=${s.survives}, min sanity=${s.minSanity}, water on path=${s.almondsOnRoute}${s.diedAtFraction != null ? `, dies@${(s.diedAtFraction * 100) | 0}%` : ''}`);
   }
   lines.push(`- play: reachedExit=${r.play.reachedExit} almonds=${r.play.almondsGrabbed} descended=${r.play.descended}`);
   lines.push('', '## Findings (highest-leverage first)');
