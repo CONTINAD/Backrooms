@@ -2,6 +2,16 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 9 — Distant ambient sounds (audio dread)
+- Target: "atmosphere polish". Chose an AUDIO improvement deliberately because the preview
+  screenshot tool is wedged this session — audio is verifiable without it.
+- Added `AudioEngine.ambientEvent()`: randomized far-off, heavily low-passed + delayed
+  sounds — muffled thuds, footsteps that aren't yours, low groans, structural creaks — so
+  the level feels inhabited and unsafe. Fired from the game loop on a random ~8–21s timer
+  that tightens as sanity drops. The Backrooms is defined as much by its sounds as its look.
+- VERIFIED (no screenshot needed): forced all 4 sound types via eval — audio context
+  "running", 4/4 fired, 0 exceptions, game still playing, only the usual pointer-lock warns.
+
 ## 2026-05-31 — Cycle 8 — Ceiling support beams (architectural structure)
 - Target: playtest "content/atmosphere polish" + research note that Level 0's ceiling is
   "acoustic tiles divided by darker yellow support beams".

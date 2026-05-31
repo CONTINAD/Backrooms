@@ -110,6 +110,52 @@ export class AudioEngine {
     src.connect(bp); bp.connect(g); g.connect(this.master); src.start(t);
   }
 
+  // Distant, unsettling ambience — something else is in here with you, far off.
+  // Heavily low-passed + quiet + slightly delayed so it reads as "somewhere else".
+  ambientEvent() {
+    if (!this.ready) return; const ctx = this.ctx; const t = ctx.currentTime;
+    const kinds = ['thud', 'footsteps', 'groan', 'creak'];
+    const kind = kinds[Math.floor(this._rand() * kinds.length)];
+
+    // shared "far away" chain: lowpass + a little delay/feedback for space, quiet bus
+    const bus = ctx.createGain(); bus.gain.value = 0.0;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380;
+    const delay = ctx.createDelay(); delay.delayTime.value = 0.16;
+    const fb = ctx.createGain(); fb.gain.value = 0.35;
+    bus.connect(lp); lp.connect(this.master); lp.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(this.master);
+
+    const noiseBurst = (dur, freq, gain, when) => {
+      const src = ctx.createBufferSource();
+      const buf = ctx.createBuffer(1, Math.max(1, ctx.sampleRate * dur), ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
+      src.buffer = buf;
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 1.5;
+      const g = ctx.createGain(); g.gain.value = gain;
+      src.connect(bp); bp.connect(g); g.connect(bus); src.start(when);
+    };
+
+    if (kind === 'thud') { noiseBurst(0.25, 90, 0.5, t); }
+    else if (kind === 'footsteps') { for (let i = 0; i < 4; i++) noiseBurst(0.08, 140 + Math.random() * 60, 0.28, t + i * 0.34); }
+    else if (kind === 'creak') {
+      const o = ctx.createOscillator(); o.type = 'sawtooth';
+      o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.9);
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.18, t + 0.1); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.0);
+      o.connect(g); g.connect(bus); o.start(t); o.stop(t + 1.05);
+    } else { // groan
+      const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = 62 + this._rand() * 20;
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.22, t + 0.5); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
+      const lfo = ctx.createOscillator(); lfo.frequency.value = 5; const lg = ctx.createGain(); lg.gain.value = 6; lfo.connect(lg); lg.connect(o.frequency); lfo.start(t); lfo.stop(t + 1.8);
+      o.connect(g); g.connect(bus); o.start(t); o.stop(t + 1.85);
+    }
+    // fade the bus in/out so nothing clicks
+    bus.gain.setValueAtTime(0.0001, t); bus.gain.linearRampToValueAtTime(0.5, t + 0.05);
+    bus.gain.setTargetAtTime(0.0001, t + 2.0, 0.6);
+    return kind;
+  }
+
+  _rand() { return Math.random(); }
+
   setTension(x) { // 0..1 — raises the hum when danger is near.
     if (!this.ready) return;
     this.nodes.humBus.gain.setTargetAtTime(0.16 + x * 0.5, this.ctx.currentTime, 0.5);

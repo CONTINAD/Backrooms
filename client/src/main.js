@@ -173,6 +173,14 @@ class Game {
       const interval = 0.5 + (sm.dist / 12) * 1.6;
       if (this._breathAccum > interval) { this.audio.breath(THREE.MathUtils.clamp((12 - sm.dist) / 12, 0.2, 1)); this._breathAccum = 0; }
     }
+    // Distant unsettling ambience — something far off. More frequent as sanity drops.
+    this._ambAccum = (this._ambAccum || 0) + dt;
+    if (this._ambAccum > (this._ambNext || 12)) {
+      this.audio.ambientEvent();
+      this._ambAccum = 0;
+      const fear = 1 - this.sanity / SANITY_MAX;
+      this._ambNext = (14 - fear * 7) * (0.6 + Math.random() * 0.9); // ~8–21s, sooner when scared
+    }
 
     this._checkPickups(pos);
     this._checkExit(pos);
