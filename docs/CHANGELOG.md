@@ -2,6 +2,16 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 14 — Session leaderboard / champions (competitive retention)
+- Target: "make it play stellar" — a prize race needs persistent stakes & rivalry. (Verifiable;
+  screenshot tool still wedged.)
+- Server tracks **escapes per player** across rounds (`champions` map), credited on round end,
+  exposed at `/api/leaderboard`, and included in the WELCOME + WIN broadcasts. Client renders a
+  "CHAMPIONS — MOST ESCAPES" list on the results screen (👑 on the leader).
+- VERIFIED end-to-end: a real WS client escaped → WIN carried `[{ChampTest, wins:1}]` and
+  `/api/leaderboard` persisted it; client eval confirmed the champions list renders with the
+  crown + correct pluralization. (Bonus: re-confirmed the anti-cheat/escape/round-end flow live.)
+
 ## 2026-05-31 — Cycle 13 — Randomized exit placement (replayability)
 - Target: a real design weakness — the exit was ALWAYS at corner (w-2,h-2), so every round
   was an identical beeline and the compass made it trivial. (Verifiable change; screenshot

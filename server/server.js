@@ -49,10 +49,19 @@ function resolvePath(pathname) {
 
 const pool = new PrizePool();
 
+// Session leaderboard: escapes (round wins) per player name. Champions of the Backrooms.
+const champions = new Map();   // name -> { wins, wallet }
+function leaderboardTop(n = 8) {
+  return [...champions.entries()]
+    .map(([name, v]) => ({ name, wins: v.wins, wallet: v.wallet || null }))
+    .sort((a, b) => b.wins - a.wins).slice(0, n);
+}
+
 const server = http.createServer((req, res) => {
   const { pathname } = url.parse(req.url);
   if (pathname === '/api/health') return send(res, 200, JSON.stringify({ ok: true, ...pool.snapshot() }), 'application/json');
   if (pathname === '/api/pool') return send(res, 200, JSON.stringify(pool.snapshot()), 'application/json');
+  if (pathname === '/api/leaderboard') return send(res, 200, JSON.stringify({ leaderboard: leaderboardTop() }), 'application/json');
 
   const filePath = resolvePath(decodeURIComponent(pathname));
   // Prevent path traversal outside allowed roots.
@@ -84,6 +93,7 @@ wss.on('connection', (ws) => {
         ws.send(JSON.stringify({
           t: MSG.WELCOME, id,
           round: { ...round.snapshot().round, ...pool.snapshot() },
+          leaderboard: leaderboardTop(),
         }));
         break;
       case MSG.INPUT: round.applyInput(id, msg); break;
@@ -113,6 +123,12 @@ setInterval(() => {
 
 async function onRoundEnd(r) {
   const result = await pool.award(r.winners || [], r.signature);
+  // Credit the champion(s) of this round to the session leaderboard.
+  for (const w of (r.winners || [])) {
+    const cur = champions.get(w.name) || { wins: 0, wallet: w.wallet || null };
+    cur.wins += 1; if (w.wallet) cur.wallet = w.wallet;
+    champions.set(w.name, cur);
+  }
   broadcast({
     t: MSG.WIN,
     scores: r.scoreboard().map(p => ({ name: p.name, score: p.score, depth: p.depth })),
@@ -121,6 +137,7 @@ async function onRoundEnd(r) {
     escapedName: r.winners?.[0]?.name || null,
     outcome: r.signature,
     payout: result,
+    leaderboard: leaderboardTop(),
   });
   console.log(`[round] ended. winners=${(r.winners || []).map(w => w.name).join(',') || 'none'} payout=${JSON.stringify(result)}`);
   // Reset for the next round after a short results window.

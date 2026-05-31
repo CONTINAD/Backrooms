@@ -81,6 +81,7 @@ class Game {
     this.net.addEventListener('welcome', e => {
       const { round, offline } = e.detail;
       this.round = round;
+      if (e.detail.leaderboard) this._leaderboard = e.detail.leaderboard;
       $('#lobby-status').textContent = offline
         ? 'Offline solo practice (server unreachable) — full game still playable.'
         : 'Connected. Enter when ready.';
@@ -421,6 +422,23 @@ class Game {
     $('#payout-line').textContent = pool > 0
       ? `Winner receives ${pool} SOL (${this.round?.network || 'devnet'}). ${this.wallet.pubkey ? 'Bound to ' + this.wallet.short() : 'Connect a wallet next round to be eligible.'}`
       : 'Devnet demo pool. Connect Phantom to play for prizes.';
+    this._renderLeaderboard(data.leaderboard);
+  }
+
+  // Session leaderboard — Backrooms champions by total escapes.
+  _renderLeaderboard(board) {
+    if (board) this._leaderboard = board;
+    board = this._leaderboard;
+    let el = document.getElementById('champions');
+    if (!el) {
+      el = document.createElement('div'); el.id = 'champions';
+      el.style.cssText = 'margin-top:14px;text-align:left;font-size:12px;color:#b3aa84';
+      $('#payout-line').after(el);
+    }
+    if (!board || !board.length) { el.innerHTML = ''; return; }
+    el.innerHTML = '<div style="color:#9a9270;letter-spacing:3px;margin-bottom:6px">CHAMPIONS — MOST ESCAPES</div>'
+      + board.map((c, i) => `<div style="display:flex;justify-content:space-between;padding:2px 0;${i === 0 ? 'color:#d8c15a' : ''}">`
+        + `<span>${i === 0 ? '👑 ' : (i + 1) + '. '}${c.name}</span><span>${c.wins} escape${c.wins === 1 ? '' : 's'}</span></div>`).join('');
   }
 
   _onResize() {
