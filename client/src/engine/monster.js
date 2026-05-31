@@ -108,14 +108,16 @@ export class Hollow {
   }
 
   // returns { drain:0..1, attack:bool, visible, dist, observed }
-  update(dt, t, playerPos, camera, sanity, level) {
+  // allowSpawn=false lets an "encounter director" stop a second monster appearing while
+  // another is already hunting (no unfair double-team).
+  update(dt, t, playerPos, camera, sanity, level, allowSpawn = true) {
     this.cooldown -= dt;
 
     if (this.state === 'hidden') {
       this.root.visible = false;
       // Materialize out of view when nerves are frayed.
       const pressure = sanity < 60 ? (sanity < 30 ? 0.6 : 0.22) : 0.04;
-      if (this.cooldown <= 0 && Math.random() < dt * pressure) this._spawn(playerPos, camera, level);
+      if (allowSpawn && this.cooldown <= 0 && Math.random() < dt * pressure) this._spawn(playerPos, camera, level);
       return { drain: 0, attack: false, visible: false, dist: 99, observed: false };
     }
 

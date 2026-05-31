@@ -2,6 +2,15 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 21 — Encounter director (two-monster balance)
+- Target: balance the new two-monster system — both could hunt at once, which would be
+  unfairly overwhelming. (Verifiable; screenshot tool still wedged.)
+- Added an `allowSpawn` gate to both entities' update(); `main.js` coordinates so the Hollow
+  can't spawn while the Hound is active and vice-versa — only one apex threat hunts at a time.
+  Each is still independently dangerous; you just won't get pincered.
+- VERIFIED via eval: suppressed monster never spawns across 200 high-pressure ticks; when
+  allowed it spawns normally; 16 lights; no console errors.
+
 ## 2026-05-31 — Cycle 20 — Second entity: THE HOUND (pursuit predator)
 - Target: "more monsters" (user request). A new threat that contrasts The Hollow: where the
   Hollow freezes when watched, the Hound HUNTS when it sees you.

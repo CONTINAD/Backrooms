@@ -64,14 +64,15 @@ export class Hound {
   }
 
   // returns { drain, attack, visible, dist, chasing, justDetected }
-  update(dt, t, playerPos, sanity, level) {
+  // allowSpawn=false: the encounter director suppresses a new Hound while the Hollow hunts.
+  update(dt, t, playerPos, sanity, level, allowSpawn = true) {
     this.cooldown -= dt;
     let justDetected = false;
 
     if (this.state === 'hidden') {
       this.root.visible = false;
       const pressure = sanity < 70 ? (sanity < 35 ? 0.4 : 0.14) : 0.03;
-      if (this.cooldown <= 0 && Math.random() < dt * pressure) { this._spawn(playerPos, level); }
+      if (allowSpawn && this.cooldown <= 0 && Math.random() < dt * pressure) { this._spawn(playerPos, level); }
       return { drain: 0, attack: false, visible: false, dist: 99, chasing: false, justDetected };
     }
 

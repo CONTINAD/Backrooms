@@ -154,8 +154,11 @@ class Game {
 
     // ---- Sanity model ----
     const lightLevel = this._lightAt(pos);
-    const sm = this.monster.update(dt, t, pos, this.camera, this.sanity, this.level);
-    const hd = this.hound.update(dt, t, pos, this.sanity, this.level);
+    // Encounter director: only one apex threat hunts at a time. The Hollow can't spawn while
+    // the Hound was active last frame; the Hound can't spawn while the Hollow is active now.
+    const sm = this.monster.update(dt, t, pos, this.camera, this.sanity, this.level, !this._houndActive);
+    const hd = this.hound.update(dt, t, pos, this.sanity, this.level, !sm.visible);
+    this._houndActive = hd.visible;
     if (hd.justDetected) { this.audio.sting(); this.audio.breath(1); }   // a growl as it locks on
     let drain = SANITY_DRAIN;
     if (lightLevel < 0.35) drain *= SANITY_DARK_MULT;
