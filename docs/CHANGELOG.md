@@ -2,6 +2,16 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 13 — Randomized exit placement (replayability)
+- Target: a real design weakness — the exit was ALWAYS at corner (w-2,h-2), so every round
+  was an identical beeline and the compass made it trivial. (Verifiable change; screenshot
+  tool still wedged.)
+- `generateLevel` now picks a SEEDED random exit cell ≥60% of max distance from the start.
+  Deterministic per seed, so all players + the server anti-cheat + the bot stay consistent;
+  the maze is fully connected so it's always reachable.
+- VERIFIED across 6 seeds: 6 distinct exit positions, all ≥55 tiles from start, all reachable
+  (BFS). Every race is now a fresh navigation challenge.
+
 ## 2026-05-31 — Cycle 12 — Live multiplayer event feed (race tension)
 - Target: "make it play stellar" for multiplayer — players had no awareness of rivals' fates.
   Chose a verifiable networking/UI change (screenshot tool still wedged).

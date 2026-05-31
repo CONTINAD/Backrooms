@@ -107,7 +107,15 @@ export function generateLevel(seed, w = GRID_W, h = GRID_H) {
   }
 
   const start = { x: 1, y: 1 };
-  const exit = { x: w - 2, y: h - 2 };
+  // Exit at a SEEDED random cell far from the start (≥60% of the max distance), so every
+  // round is a fresh hunt instead of "always run to the far corner". The maze is a fully
+  // connected perfect maze (+ braiding), so any cell is reachable. Deterministic per seed →
+  // every player gets the same exit (fair race + server anti-cheat stays consistent).
+  const maxD = (w - 2) + (h - 2);
+  let exit = { x: w - 2, y: h - 2 }, eguard = 0;
+  do {
+    exit = { x: 1 + Math.floor(rng() * (w - 2)), y: 1 + Math.floor(rng() * (h - 2)) };
+  } while ((Math.abs(exit.x - start.x) + Math.abs(exit.y - start.y)) < maxD * 0.6 && eguard++ < 300);
 
   // Scatter Almond Water on open-ish cells, deterministically.
   const almonds = [];
