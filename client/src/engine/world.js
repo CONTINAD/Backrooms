@@ -51,6 +51,20 @@ export class World {
     ceil.rotation.x = Math.PI / 2; ceil.position.set(w * S / 2, WALL_H, h * S / 2);
     this.group.add(ceil);
 
+    // ---- Ceiling support beams: the darker grid that divides the acoustic tiles. ----
+    // Real protruding geometry (vs. flat texture) catches light and reads as structure.
+    // Two InstancedMeshes (X-running and Z-running beams) every 2 cells. Cheap, no lights.
+    const beamMat = new THREE.MeshStandardMaterial({ color: 0x8c7d36, roughness: 0.85, metalness: 0 });
+    const beamY = WALL_H - 0.08, bd = 0.16;
+    const xLines = h + 1, zLines = w + 1;   // a beam on every cell boundary (4m grid)
+    const beamX = new THREE.InstancedMesh(new THREE.BoxGeometry(w * S, 0.16, bd), beamMat, xLines);
+    const beamZ = new THREE.InstancedMesh(new THREE.BoxGeometry(bd, 0.16, h * S), beamMat, zLines);
+    const bm = new THREE.Matrix4();
+    for (let i = 0; i < xLines; i++) { bm.makeTranslation(w * S / 2, beamY, i * S); beamX.setMatrixAt(i, bm); }
+    for (let i = 0; i < zLines; i++) { bm.makeTranslation(i * S, beamY, h * S / 2); beamZ.setMatrixAt(i, bm); }
+    beamX.instanceMatrix.needsUpdate = true; beamZ.instanceMatrix.needsUpdate = true;
+    this.group.add(beamX); this.group.add(beamZ);
+
     // ---- Walls via InstancedMesh ----
     const segGeo = new THREE.BoxGeometry(S, WALL_H, 0.2);
     const segments = [];

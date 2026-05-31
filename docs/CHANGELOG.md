@@ -2,6 +2,17 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 8 — Ceiling support beams (architectural structure)
+- Target: playtest "content/atmosphere polish" + research note that Level 0's ceiling is
+  "acoustic tiles divided by darker yellow support beams".
+- Added real 3D **ceiling beams** (`world.js`): two InstancedMeshes (X- and Z-running) on a
+  4m grid, darker yellow, protruding just below the ceiling so they catch light as structure
+  rather than a flat texture line. ~98 beams, 2 draw calls, still 16 lights.
+- NOTE: the preview screenshot tool was unresponsive this cycle (harness issue — game ran at
+  180 FPS, no console errors). Verified by mesh presence (2 beam meshes / 6 instanced total),
+  error check, and sound geometry rather than a visual. Committed LOCAL ONLY; will eyeball it
+  before the next push to live.
+
 ## 2026-05-31 — Cycle 7 — Glowing EXIT sign (landmark + atmosphere)
 - Target: playtest "content/atmosphere polish" + human exit-findability.
 - Added a flickering, bloom-glowing red **EXIT sign** above the escape seam
