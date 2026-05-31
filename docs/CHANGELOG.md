@@ -2,6 +2,16 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 10 — Anti-cheat: server-validated escape (prize integrity)
+- Target: prize/scoring integrity (priority ladder: correctness > polish). Chose a
+  server-logic change because the preview screenshot tool is still wedged this session.
+- The server now recomputes the exit position from the round seed (`generateLevel`) and, on a
+  DESCEND/escape claim, verifies the player's last reported position is within one tile of the
+  seam — otherwise it logs `escape_rejected` and ignores the claim. The client can no longer
+  fake a win. This gates the Solana prize, so it's important.
+- VERIFIED by unit test (`server/round.js`): far claim (60 tiles off) → rejected & round
+  stays live; legit claim at the seam → accepted, winner set, round ends; rejection logged.
+
 ## 2026-05-31 — Cycle 9 — Distant ambient sounds (audio dread)
 - Target: "atmosphere polish". Chose an AUDIO improvement deliberately because the preview
   screenshot tool is wedged this session — audio is verifiable without it.

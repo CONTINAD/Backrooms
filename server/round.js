@@ -1,6 +1,9 @@
 // Authoritative round manager: seed, timer, players, scoring, lifecycle, signed outcome.
 import crypto from 'node:crypto';
-import { ROUND_SECONDS, LOBBY_SECONDS, MIN_PLAYERS, scoreOf } from '../shared/constants.js';
+import {
+  ROUND_SECONDS, LOBBY_SECONDS, MIN_PLAYERS, scoreOf,
+  generateLevel, cellCenter, TILE,
+} from '../shared/constants.js';
 
 export class Round {
   constructor(onEnd) {
@@ -50,6 +53,16 @@ export class Round {
 
   descend(id) {
     const p = this.players.get(id); if (!p) return;
+    // ANTI-CHEAT: only honor the escape if the player's last reported position is actually
+    // at the exit seam. The client can lie; the server owns the win (this gates the prize).
+    if (this.exitWorld) {
+      const dx = p.x - this.exitWorld.x, dz = p.z - this.exitWorld.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist > TILE) { // more than one tile from the seam → reject as invalid
+        this._log('escape_rejected', { id, dist: +dist.toFixed(1) });
+        return;
+      }
+    }
     p.exitsFound += 1; this._log('descend', { id, depth: p.exitsFound });
     // RACE MODE: the first player to reach an exit ESCAPES the Backrooms and wins the round.
     if (this.state === 'playing' && !this.escapedBy) {
@@ -79,6 +92,9 @@ export class Round {
     this.startedAt = Date.now();
     this.secondsLeft = ROUND_SECONDS;
     this.escapedBy = null;
+    // Server-side knowledge of the exit, for anti-cheat escape validation.
+    const lvl = generateLevel(this.seed >>> 0);
+    this.exitWorld = cellCenter(lvl.exit.x, lvl.exit.y);
     for (const p of this.players.values()) {
       Object.assign(p, { depth: 0, sanity: 100, hp: 100, almond: 0, survivalSeconds: 0, exitsFound: 0, dead: false, escaped: false });
     }
