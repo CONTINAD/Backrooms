@@ -337,7 +337,10 @@ class Game {
     if (this.net.offline) this.secondsLeft -= dt;
     const left = Math.max(0, this.secondsLeft);
     $('#round-timer').textContent = `${String(Math.floor(left / 60)).padStart(2, '0')}:${String(Math.floor(left % 60)).padStart(2, '0')}`;
-    if (this.secondsLeft <= 0 && this.alive) this._onRoundOver({ scores: this._soloBoard(), timeout: true });
+    // Online: the SERVER decides when a round ends (WIN broadcast). The client clock is for
+    // display only — never auto-end from it online (that caused "auto ends" when joining
+    // during the server's brief reset window). Offline solo: the local clock ends it.
+    if (this.net.offline && this.secondsLeft <= 0 && this.alive) this._onRoundOver({ scores: this._soloBoard(), timeout: true });
     this._updateCompass();
     const warn = $('#entity-warning');
     const houndClose = hd && hd.visible && hd.dist < 14;
