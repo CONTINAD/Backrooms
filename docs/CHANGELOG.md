@@ -2,6 +2,16 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — DEPLOYED LIVE 🚀
+- Game is live on Railway: **https://web-production-61936.up.railway.app** (friends can play,
+  no wallet needed). Deployed via Railway GraphQL API (workspace token; CLI couldn't run
+  headlessly). Project `df969703…`, service `web` `b3841501…`, env production `ebd2518d…`.
+- Fixed two container-build blockers: the Docker `npm install` ran the `postinstall` verifier
+  before source was copied → moved to `--ignore-scripts` AND removed the `postinstall` hook
+  (renamed to `verify-assets`). Recreated the service so it built the fixed commit.
+- Verified live: HTTP 200 on page + all engine/vendor assets, /api/health ok, and a real
+  WebSocket client got a WELCOME handshake (multiplayer works remotely).
+
 ## 2026-05-31 — Cycle 6 — Baseboards (architectural grounding)
 - Target: playtest finding "content/atmosphere polish".
 - Added dark vinyl **baseboards** where every wall meets the carpet — one InstancedMesh that
