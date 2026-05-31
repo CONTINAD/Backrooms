@@ -138,8 +138,10 @@ class Game {
     const dt = Math.min(this.clock.getDelta(), 0.05);
     const t = this.clock.elapsedTime;
     // Robust viewport sync — some embed/preview contexts resize without a resize event.
-    if (this.renderer.domElement.width !== Math.floor(innerWidth * this.renderer.getPixelRatio()) ||
-        this.renderer.domElement.height !== Math.floor(innerHeight * this.renderer.getPixelRatio())) {
+    // Guard against innerWidth/Height being 0 (hidden/headless tabs) — never shrink to 0×0.
+    if (innerWidth > 0 && innerHeight > 0 &&
+        (this.renderer.domElement.width !== Math.floor(innerWidth * this.renderer.getPixelRatio()) ||
+         this.renderer.domElement.height !== Math.floor(innerHeight * this.renderer.getPixelRatio()))) {
       this._onResize();
     }
     this._fps = this._fps ? this._fps * 0.9 + (1 / Math.max(dt, 1e-4)) * 0.1 : 1 / Math.max(dt, 1e-4);
@@ -457,6 +459,7 @@ class Game {
   }
 
   _onResize() {
+    if (innerWidth <= 0 || innerHeight <= 0) return;   // ignore 0×0 (hidden/headless tab)
     this.camera.aspect = innerWidth / innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(innerWidth, innerHeight);
