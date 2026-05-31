@@ -2,6 +2,20 @@
 
 Each improvement-loop cycle appends an entry: what changed, why, and the metric it targeted.
 
+## 2026-05-31 — Cycle 5 — Lore-accurate lighting + hazy light shafts (RESEARCH+BUILD)
+- Researched canonical Level 0 (Backrooms wikis): fluorescents are "seemingly distributed at
+  random", ceiling = acoustic tiles split by darker support beams, oppressive hazy glow.
+- Replaced the rigid 3-cell light grid with a **jittered, gappy placement** (seeded from the
+  level so all players see the same layout) — irregular like the real thing, but dense enough
+  to avoid unlit dead-zones (first attempt at 11% random was too dark; tuned to a jittered
+  every-2-cells base with 16% gaps → ~450 panels).
+- Added **hazy light shafts**: one additive `InstancedMesh` of soft cylinders under each panel
+  for that thick, dust-laden fluorescent column (pairs with the dust motes). One draw call,
+  still 16 lights, 180 FPS. Verified on screen.
+- GAME MODEL CHANGE (this session): converted to a **RACE** — first player to reach an exit
+  ESCAPES and wins the round/prize (server-authoritative, `round.js`). Short 6s lobby for
+  drop-in. Also fixed a latent crash: Almond Water pickup referenced a removed `glow` field.
+
 ## 2026-05-31 — Cycle 4 — Atmosphere: floating dust
 - Target: playtest finding "content/atmosphere polish" (level otherwise rated GOOD).
 - Added drifting dust motes (`client/src/engine/dust.js`): one additive `THREE.Points` cloud

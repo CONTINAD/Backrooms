@@ -1,7 +1,7 @@
 // Builds the Three.js scene geometry for a level from shared maze data.
 // Walls/floor/ceiling are merged-ish via InstancedMesh for performance.
 import * as THREE from 'three';
-import { TILE, WALL_H, BIT } from 'shared/constants.js';
+import { TILE, WALL_H, BIT, makeRng } from 'shared/constants.js';
 import { wallpaperTexture, carpetTexture, ceilingTexture } from './textures.js';
 
 export class World {
@@ -79,9 +79,19 @@ export class World {
     // Every panel glows (cheap, drives bloom). Actual dynamic PointLights come from a small
     // pool that follows the player — using a real light per panel blows the GPU's fragment
     // uniform budget and makes the lit shader render black. (Learned the hard way.)
+    // Lore-accurate: fluorescent lights are "seemingly distributed at random", not gridded.
+    // Seeded from the level so every player sees the SAME placement (fair multiplayer).
+    const prng = makeRng((level.seed ^ 0x9e3779b9) >>> 0);
     const positions = [];
-    for (let y = 1; y < h; y += 3) for (let x = 1; x < w; x += 3) {
-      positions.push([x * S + S / 2, WALL_H - 0.06, y * S + S / 2]);
+    // Jittered base every ~2 cells with occasional gaps: irregular ("seemingly random")
+    // but no large unlit voids, so the place stays navigable.
+    for (let y = 1; y < h - 1; y += 2) for (let x = 1; x < w - 1; x += 2) {
+      if (prng() < 0.84) {
+        positions.push([
+          x * S + S / 2 + (prng() - 0.5) * S * 1.1, WALL_H - 0.06,
+          y * S + S / 2 + (prng() - 0.5) * S * 1.1,
+        ]);
+      }
     }
     const panelGeo = new THREE.BoxGeometry(S * 0.6, 0.08, S * 0.6);
     const panels = new THREE.InstancedMesh(panelGeo, this.panelMat, positions.length);
@@ -93,6 +103,19 @@ export class World {
     panels.instanceMatrix.needsUpdate = true;
     this.group.add(panels);
     this.panelInstanced = panels;
+
+    // Hazy light shafts under each panel — that thick, dust-laden fluorescent column.
+    // One additive InstancedMesh (commutative blending → no sort needed), cheap, big payoff.
+    const shaftGeo = new THREE.CylinderGeometry(0.35, 1.5, WALL_H * 0.96, 10, 1, true);
+    const shaftMat = new THREE.MeshBasicMaterial({
+      color: 0xffeec0, transparent: true, opacity: 0.07, depthWrite: false,
+      blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    });
+    const shafts = new THREE.InstancedMesh(shaftGeo, shaftMat, positions.length);
+    positions.forEach((p, i) => { pm.makeTranslation(p[0], WALL_H * 0.5, p[2]); shafts.setMatrixAt(i, pm); });
+    shafts.instanceMatrix.needsUpdate = true;
+    this.group.add(shafts);
+    this.shaftInstanced = shafts;
 
     // The light pool.
     for (let i = 0; i < this.POOL; i++) {
